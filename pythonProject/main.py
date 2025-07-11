@@ -1,152 +1,123 @@
 import tkinter as tk
-from tkinter import Canvas
 import math
 import requests
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.patches as patches
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-
-# Настройки
-HEX_SIZE = 1
-HEX_COLORS = {
-    1: "lightblue",    # муравейник
-    2: "lightgray",    # пустой
-    3: "saddlebrown",  # грязь
-    4: "green",        # кислота
-    5: "black",        # камни
-}
+# === Конфиг ===
 API_URL = "https://games-test.datsteam.dev"
-AUTH_HEADER = {"X-Auth-Token": f"{os.getenv("TOKEN")}"}  # ← Замени на свой токен
+TOKEN = f"{os.getenv("TOKEN")}"
+AUTH_HEADER = {"X-Auth-Token": TOKEN}
 
-# ---- Работа с координатами ----
-def hex_to_pixel(q, r, size):
-    x = size * 3 / 2 * q
-    y = size * math.sqrt(3) * (r + 0.5 * (q % 2))
+# === Цвета ===
+TILE_COLORS = {
+    1: "#cccccc",  # земля
+    2: "#999999",  # камень
+    3: "#666666",  # гора
+    4: "#88cc88",  # лес
+    5: "#ffcc00",  # болото / песок
+}
+ANT_COLORS = {
+    0: "blue",     # Scout
+    1: "red",      # Soldier
+    2: "green",    # Worker
+}
+FOOD_COLOR = "orange"
+HOME_COLOR = "cyan"
+
+# === Размеры ===
+HEX_SIZE = 20
+HEX_HEIGHT = HEX_SIZE * 2
+HEX_WIDTH = math.sqrt(3) / 2 * HEX_HEIGHT
+
+def hex_to_pixel(q, r):
+    x = HEX_WIDTH * (q + r / 2)
+    y = HEX_HEIGHT * (3/4) * r
     return x, y
 
-# ---- Рендер гекса ----
-def draw_hex(ax, x, y, size, color):
-    angles = [math.radians(60 * i) for i in range(6)]
-    points = [(x + size * math.cos(a), y + size * math.sin(a)) for a in angles]
-    hexagon = patches.Polygon(points, closed=True, edgecolor='gray', facecolor=color)
-    ax.add_patch(hexagon)
+def draw_hex(canvas, x, y, size, fill):
+    points = []
+    for i in range(6):
+        angle = math.radians(60 * i)
+        px = x + size * math.cos(angle)
+        py = y + size * math.sin(angle)
+        points.extend((px, py))
+    return canvas.create_polygon(points, outline="black", fill=fill)
 
-def draw_unit(ax, x, y, icon, color='white'):
-    circle = patches.Circle((x, y), 0.3, color=color, zorder=10)
-    ax.add_patch(circle)
-    ax.text(x, y, icon, ha='center', va='center', fontsize=8, zorder=11)
-
-# ---- Основной рендер ----
-def render_arena(arena):
-    fig, ax = plt.subplots(figsize=(10, 8))
-    ax.set_aspect('equal')
-    ax.axis('off')
-
-    for tile in arena.get("map", []):
-        q, r = tile["q"], tile["r"]
-        x, y = hex_to_pixel(q, r, HEX_SIZE)
-        tile_type = tile["type"]
-        color = HEX_COLORS.get(tile_type, "white")
-        draw_hex(ax, x, y, HEX_SIZE, color)
-
-    for food in arena.get("food", []):
-        x, y = hex_to_pixel(food["q"], food["r"], HEX_SIZE)
-        draw_unit(ax, x, y, "🍗", color='orange')
-
-    for ant in arena.get("ants", []):
-        x, y = hex_to_pixel(ant["q"], ant["r"], HEX_SIZE)
-        draw_unit(ax, x, y, "A", color='white')
-
-    for enemy in arena.get("enemies", []):
-        x, y = hex_to_pixel(enemy["q"], enemy["r"], HEX_SIZE)
-        draw_unit(ax, x, y, "E", color='red')
-
-    for home in arena.get("home", []):
-        x, y = hex_to_pixel(home["q"], home["r"], HEX_SIZE)
-        ax.add_patch(patches.Circle((x, y), 0.4, edgecolor='blue', facecolor='none', linewidth=2))
-
-    spot = arena.get("spot", {"q": 0, "r": 0})
-    x, y = hex_to_pixel(spot["q"], spot["r"], HEX_SIZE)
-    ax.add_patch(patches.Circle((x, y), 0.5, edgecolor='cyan', linewidth=2, fill=False))
-
-    ax.relim()
-    ax.autoscale_view()
-    return fig
-
-# ---- Работа с API ----
 def register():
-    url = f"{API_URL}/api/register"
-    response = requests.post(url, headers=AUTH_HEADER)
-    response.raise_for_status()
-    data = response.json()
-    print("✅ Зарегистрирован:", data["name"], "| Realm:", data["realm"])
-    return data
+    try:
+        r = requests.post(f"{API_URL}/api/register", headers=AUTH_HEADER)
+        r.raise_for_status()
+        print("✅ Зарегистрирован:", r.json())
+    except requests.RequestException as e:
+        print("❌ Ошибка регистрации:", e)
 
 def fetch_arena():
-    url = f"{API_URL}/api/arena"
     try:
-        response = requests.get(url, headers=AUTH_HEADER)
-        if response.status_code == 400:
-            print("⚠️ Не зарегистрирован, пытаюсь зарегистрироваться...")
+        r = requests.get(f"{API_URL}/api/arena", headers=AUTH_HEADER)
+        if r.status_code == 400:
+            print("ℹ️ Получен 400 — пробуем зарегистрироваться...")
             register()
-            response = requests.get(url, headers=AUTH_HEADER)
-        response.raise_for_status()
-        return response.json()
+            r = requests.get(f"{API_URL}/api/arena", headers=AUTH_HEADER)
+        r.raise_for_status()
+        return r.json()
     except requests.RequestException as e:
         print("❌ Ошибка получения арены:", e)
-        return {"map": [], "ants": [], "enemies": [], "food": [], "home": [], "spot": {"q": 0, "r": 0}}
+        return {}
 
-def fetch_logs():
-    url = f"{API_URL}/api/logs"
-    try:
-        response = requests.get(url, headers=AUTH_HEADER)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        print("❌ Ошибка логов:", e)
-        return []
-
-# ---- Интерфейс ----
 class ArenaApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("DatsPulse Arena Viewer")
-        self.geometry("1000x800")
+        self.title("Ant Arena Viewer")
+        self.canvas = tk.Canvas(self, width=1000, height=800, bg="white")
+        self.canvas.pack()
+        self.after(1000, self.update_arena)  # запуск автообновления через 1с
 
-        self.canvas_frame = tk.Frame(self)
-        self.canvas_frame.pack(fill=tk.BOTH, expand=True)
+    def update_arena(self):
+        self.canvas.delete("all")  # очищаем перед перерисовкой
+        self.draw_arena()
+        self.after(2000, self.update_arena)  # повторно запускаем через 2 секунды
 
-        self.log_text = tk.Text(self, height=8)
-        self.log_text.pack(fill=tk.X)
+    def draw_arena(self):
+        data = fetch_arena()
+        tiles = data.get("map", [])
+        ants = data.get("ants", [])
+        food = data.get("food", [])
+        homes = data.get("home", [])
 
-        self.button = tk.Button(self, text="🔄 Обновить карту", command=self.refresh_map)
-        self.button.pack(pady=5)
+        OFFSET_X, OFFSET_Y = 100, 100
 
-        self.refresh_map()
+        for tile in tiles:
+            q, r = tile["q"], tile["r"]
+            x, y = hex_to_pixel(q, r)
+            x += OFFSET_X
+            y += OFFSET_Y
+            color = TILE_COLORS.get(tile["type"], "gray")
+            draw_hex(self.canvas, x, y, HEX_SIZE, fill=color)
 
-    def plot_arena(self, arena_data):
-        fig = render_arena(arena_data)
-        self.chart = FigureCanvasTkAgg(fig, master=self.canvas_frame)
-        self.chart.draw()
-        self.chart.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        for cell in homes:
+            q, r = cell["q"], cell["r"]
+            x, y = hex_to_pixel(q, r)
+            x += OFFSET_X
+            y += OFFSET_Y
+            self.canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill=HOME_COLOR, outline="black")
 
-    def show_logs(self, logs):
-        self.log_text.delete("1.0", tk.END)
-        for entry in logs:
-            self.log_text.insert(tk.END, f"{entry['time']} — {entry['message']}\n")
+        for f in food:
+            q, r = f["q"], f["r"]
+            x, y = hex_to_pixel(q, r)
+            x += OFFSET_X
+            y += OFFSET_Y
+            self.canvas.create_rectangle(x - 5, y - 5, x + 5, y + 5, fill=FOOD_COLOR, outline="black")
 
-    def refresh_map(self):
-        if hasattr(self, 'chart'):
-            self.chart.get_tk_widget().destroy()
-        arena = fetch_arena()
-        logs = fetch_logs()
-        self.plot_arena(arena)
-        self.show_logs(logs)
+        for ant in ants:
+            q, r = ant["q"], ant["r"]
+            x, y = hex_to_pixel(q, r)
+            x += OFFSET_X
+            y += OFFSET_Y
+            color = ANT_COLORS.get(ant["type"], "black")
+            self.canvas.create_oval(x - 6, y - 6, x + 6, y + 6, fill=color, outline="black")
 
 if __name__ == "__main__":
     app = ArenaApp()
