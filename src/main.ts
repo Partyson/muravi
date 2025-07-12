@@ -3,14 +3,9 @@ import { Mapmaker } from "./modules/Mapmaker";
 import { Requester } from "./modules/Requester";
 import type { IArena } from "./modules/Requester/DTO";
 
-// html-код на страницу
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <canvas style="border: 1px solid red;" id="canvas" width="500" height="500"></canvas>
-`;
-
 const artist = new CanvasArtist(
     document.getElementById("canvas") as HTMLCanvasElement,
-    10
+    8
 );
 const requester = new Requester(
     "https://games-test.datsteam.dev",
@@ -50,13 +45,11 @@ let renderedFrames = 0;
 const renderFrame = async () => {
     artist.clear();
     if (renderedFrames === 0) {
-        console.log('go to map')
+        console.log("go to map");
         mapper.translateToMap(lastArena)
     }
     mapper.map(lastArena);
-    artist.drawCircle({ posq: 1, posr: 1, color: "#ff0000" });
     renderedFrames += 1;
-
 };
 
 setInterval(async () => {

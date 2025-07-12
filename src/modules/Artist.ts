@@ -133,12 +133,31 @@ export class CanvasArtist {
     ) {
         const [x1, y1] = this.getCanvasCoords(r1, q1);
         const [x2, y2] = this.getCanvasCoords(r2, q2);
-        this.ctx.moveTo(x1, y1);
-        this.ctx.beginPath();
-        this.ctx.lineTo(x2, y2);
+        const arrowSize = this.hexagoneRadius / 2;
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        this.ctx.strokeStyle = color;
         this.ctx.fillStyle = color;
-        this.ctx.lineWidth = 10;
+        this.ctx.lineWidth = arrowSize / 6;
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1, y1);
+        this.ctx.lineTo(x2, y2);
         this.ctx.stroke();
+        this.ctx.closePath();
+
+        this.ctx.moveTo(x2, y2);
+        this.ctx.beginPath();
+        this.ctx.moveTo(x2, y2); // Вершина стрелки
+        this.ctx.lineTo(
+            x2 - arrowSize * Math.cos(angle - Math.PI / 6),
+            y2 - arrowSize * Math.sin(angle - Math.PI / 6)
+        );
+        this.ctx.lineTo(
+            x2 - arrowSize * Math.cos(angle + Math.PI / 6),
+            y2 - arrowSize * Math.sin(angle + Math.PI / 6)
+        );
+        this.ctx.closePath();
+        this.ctx.fill(); // Заливаем стрелку
     }
 
     // рисует гекс из центра
@@ -235,7 +254,14 @@ export class CanvasArtist {
 
     private applyTransform() {
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        this.ctx.setTransform(this.scale, 0, 0, this.scale, this.translate[0]*this.scale, this.translate[1]*this.scale);
+        this.ctx.setTransform(
+            this.scale,
+            0,
+            0,
+            this.scale,
+            this.translate[0] * this.scale,
+            this.translate[1] * this.scale
+        );
     }
 
     public zoom(scale: number) {

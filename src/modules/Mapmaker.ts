@@ -14,16 +14,17 @@ export class Mapmaker {
         }
         this.artist.drawHome(arena.home);
         for (let ant of arena.ants) {
-            this.artist.drawAnt(ant.q, ant.r, ant);
             if (ant.move) {
+                console.log('move hehe')
                 this.artist.drawArrow(
                     ant.q,
                     ant.r,
                     ant.move[0].q,
                     ant.move[0].r,
-                    "#ff0000"
+                    "#ff0000CC"
                 );
             }
+            this.artist.drawAnt(ant.q, ant.r, ant);
         }
         for (let enemy of arena.enemies) {
             this.artist.drawAnt(enemy.q, enemy.r, enemy, true);
