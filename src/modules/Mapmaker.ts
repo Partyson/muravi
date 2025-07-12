@@ -15,6 +15,15 @@ export class Mapmaker {
         this.artist.drawHome(arena.home);
         for (let ant of arena.ants) {
             this.artist.drawAnt(ant.q, ant.r, ant);
+            if (ant.move) {
+                this.artist.drawArrow(
+                    ant.q,
+                    ant.r,
+                    ant.move[0].q,
+                    ant.move[0].r,
+                    "#ff0000"
+                );
+            }
         }
         for (let enemy of arena.enemies) {
             this.artist.drawAnt(enemy.q, enemy.r, enemy, true);
@@ -22,5 +31,16 @@ export class Mapmaker {
         for (let food of arena.food) {
             this.artist.drawFood(food.q, food.r, food);
         }
+    }
+
+    public translateToMap(arena: IArena) {
+        const [x, y] = this.artist.getCanvasCoords(
+            arena.home[0].r,
+            arena.home[0].q
+        );
+        this.artist.goTo(
+            -x + this.artist.canvas.width / 2 / this.artist.scale,
+            -y + this.artist.canvas.height / 2 / this.artist.scale
+        );
     }
 }
