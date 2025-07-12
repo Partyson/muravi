@@ -15,15 +15,6 @@ export class Mapmaker {
         }
         this.artist.drawHome(arena.home);
         for (let ant of arena.ants) {
-            if (ant.move) {
-                this.artist.drawArrow(
-                    ant.q,
-                    ant.r,
-                    ant.move[0].q,
-                    ant.move[0].r,
-                    COLORS.arrow
-                );
-            }
             this.artist.drawAnt(ant.q, ant.r, ant);
         }
         for (let enemy of arena.enemies) {
@@ -31,6 +22,11 @@ export class Mapmaker {
         }
         for (let food of arena.food) {
             this.artist.drawFood(food.q, food.r, food);
+        }
+        for (let ant of arena.ants) {
+            if (ant.move) {
+                this.artist.drawArrow(ant.q, ant.r, ant.move, COLORS.arrow);
+            }
         }
     }
 

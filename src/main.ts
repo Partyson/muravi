@@ -8,7 +8,7 @@ const artist = new CanvasArtist(
     8
 );
 const requester = new Requester(
-    "https://games-test.datsteam.dev",
+    "https://games.datsteam.dev",
     import.meta.env.VITE_TOKEN
 );
 const mapper = new Mapmaker(artist);

@@ -1,6 +1,7 @@
 import { Colorist } from "../Colorist";
 import type { IArena } from "../Requester/DTO";
 import type { IAnt, IEnemyAnt } from "../Requester/Entities/Ant";
+import type { ICoordinates } from "../Requester/Entities/Coordinates";
 import type { IFood } from "../Requester/Entities/Food";
 import type { IGex } from "../Requester/Entities/Gex";
 import { COLORS } from "./Colors";
@@ -155,27 +156,32 @@ export class CanvasArtist {
     public drawArrow(
         q1: number,
         r1: number,
-        q2: number,
-        r2: number,
+        move: ICoordinates[],
         color: string
     ) {
-        const [x1, y1] = this.getCanvasCoords(r1, q1);
-        const [x2, y2] = this.getCanvasCoords(r2, q2);
+        let moveCoords: number[][] = [this.getCanvasCoords(r1, q1)];
+        for (const step of move) {
+            moveCoords.push(this.getCanvasCoords(step.r, step.q));
+        }
+        // const [x2, y2] = ;
         const arrowSize = this.hexagoneRadius / 2;
-        const angle = Math.atan2(y2 - y1, x2 - x1);
         this.ctx.strokeStyle = color;
         this.ctx.fillStyle = color;
         this.ctx.lineWidth = arrowSize / 6;
-
-        this.ctx.beginPath();
-        this.ctx.moveTo(x1, y1);
-        this.ctx.lineTo(x2, y2);
+        // this.ctx.beginPath();
+        this.ctx.moveTo(moveCoords[0][0], moveCoords[0][1]);
+        for (const stepCoords of moveCoords) {
+            this.ctx.lineTo(stepCoords[0], stepCoords[1]);
+        }
         this.ctx.stroke();
-        this.ctx.closePath();
+        // this.ctx.closePath();
+
+        const [x2, y2] = moveCoords[moveCoords.length - 1];
+        const [x1, y1] = moveCoords[moveCoords.length - 2];
+        const angle = Math.atan2(y2 - y1, x2 - x1);
 
         this.ctx.moveTo(x2, y2);
         this.ctx.beginPath();
-        this.ctx.moveTo(x2, y2); // Вершина стрелки
         this.ctx.lineTo(
             x2 - arrowSize * Math.cos(angle - Math.PI / 6),
             y2 - arrowSize * Math.sin(angle - Math.PI / 6)
@@ -184,8 +190,9 @@ export class CanvasArtist {
             x2 - arrowSize * Math.cos(angle + Math.PI / 6),
             y2 - arrowSize * Math.sin(angle + Math.PI / 6)
         );
-        this.ctx.closePath();
+        this.ctx.lineTo(x2, y2);
         this.ctx.fill(); // Заливаем стрелку
+        this.ctx.closePath();
     }
 
     // рисует гекс из центра
@@ -213,7 +220,7 @@ export class CanvasArtist {
             posr: r,
             color,
             text: gex.q + " | " + gex.r,
-            textMul: 0.35
+            textMul: 0.35,
         });
     }
 
