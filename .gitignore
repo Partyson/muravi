@@ -6,7 +6,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+strategy_bot/maps
+*.png
+*.pyc
 node_modules
 dist
 dist-ssr
