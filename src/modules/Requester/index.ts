@@ -13,7 +13,7 @@ export class Requester {
 
     public async requestArena() {
         //TODO: удалить эту строку, когда откроется сервер
-        return arenaExample as IArena;
+        // return arenaExample as IArena;
         
         const path = this.URL + '/api/arena'
         const {data} = await axios.get<IArena>(path, {

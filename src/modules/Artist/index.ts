@@ -1,8 +1,9 @@
-import { Colorist } from "./Colorist";
-import type { IArena } from "./Requester/DTO";
-import type { IAnt, IEnemyAnt } from "./Requester/Entities/Ant";
-import type { IFood } from "./Requester/Entities/Food";
-import type { IGex } from "./Requester/Entities/Gex";
+import { Colorist } from "../Colorist";
+import type { IArena } from "../Requester/DTO";
+import type { IAnt, IEnemyAnt } from "../Requester/Entities/Ant";
+import type { IFood } from "../Requester/Entities/Food";
+import type { IGex } from "../Requester/Entities/Gex";
+import { COLORS } from "./Colors";
 
 // класс, который рисует
 export class CanvasArtist {
@@ -105,10 +106,19 @@ export class CanvasArtist {
         const p = this.hexagoneP * radiusMul;
         const [x, y] = this.getCanvasCoords(posr, posq);
 
+        // этот костыль придуман для того, чтобы обводка
+        // не вылезала за границу шестиугольника
         ctx.moveTo(x, y + r); // центральные коорды
+        if (strokeColor) {
+            const k = p / 20;
+            ctx.arc(x, y, k, 0, 2 * Math.PI);
+            ctx.strokeStyle = strokeColor;
+            ctx.stroke();
+        }
+
         ctx.beginPath();
         ctx.arc(x, y, p, 0, 2 * Math.PI);
-
+        ctx.closePath()
         if (color) {
             ctx.fillStyle = color;
             ctx.fill();
@@ -165,19 +175,19 @@ export class CanvasArtist {
         let color = "";
         switch (gex.type) {
             case 1: // муравейник
-                color = "#FFD700";
+                color = COLORS.anthill_gex;
                 break;
             case 2: // пустой
-                color = "#FFFFE0";
+                color = COLORS.empty_gex;
                 break;
             case 3: // грязь
-                color = "#79553D";
+                color = COLORS.dirt_gex;
                 break;
             case 4: // кислота
-                color = "#00FF00";
+                color = COLORS.acid_gex;
                 break;
             case 5: // камень
-                color = "#909090";
+                color = COLORS.stone_gex;
                 break;
         }
         this.drawHexagon({
@@ -194,16 +204,16 @@ export class CanvasArtist {
         let color = "";
         switch (food.type) {
             case 1: // яблоко
-                color = "#FF2400";
+                color = COLORS.apple_food;
                 break;
             case 2: // хлеб
-                color = "#f5deb3";
+                color = COLORS.bread_food;
                 break;
             case 3: // нектар
-                color = "#ffa500";
+                color = COLORS.nectar_food;
                 break;
         }
-        this.drawHexagon({
+        this.drawCircle({
             posq: q,
             posr: r,
             color,
@@ -222,21 +232,21 @@ export class CanvasArtist {
         let color = "";
         switch (ant.type) {
             case 2: // разведчик
-                color = "#00bfff";
+                color = COLORS.scout_ant;
                 break;
             case 1: // боец
-                color = "#bf370f";
+                color = COLORS.fighter_ant;
                 break;
             case 0: // рабочий
-                color = "#ffff00";
+                color = COLORS.worker_ant;
                 break;
         }
-        this.drawCircle({
+        this.drawHexagon({
             posq: q,
             posr: r,
             color,
             text: String(ant.health),
-            strokeColor: isEnemy ? "#ff2400" : "#56b814",
+            strokeColor: isEnemy ? COLORS.enemy : COLORS.ally,
             radiusMul: 0.7,
         });
         this.drawFood(q, r, ant.food);
@@ -247,7 +257,7 @@ export class CanvasArtist {
             this.drawHexagon({
                 posq: piece.q,
                 posr: piece.r,
-                color: "#56b814",
+                color: COLORS.home_gex,
             });
         }
     }

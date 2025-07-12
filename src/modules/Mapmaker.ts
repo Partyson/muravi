@@ -1,4 +1,5 @@
 import type { CanvasArtist } from "./Artist";
+import { COLORS } from "./Artist/Colors";
 import type { IArena } from "./Requester/DTO";
 
 // класс-картограф, наносит на карту объекты
@@ -15,13 +16,12 @@ export class Mapmaker {
         this.artist.drawHome(arena.home);
         for (let ant of arena.ants) {
             if (ant.move) {
-                console.log('move hehe')
                 this.artist.drawArrow(
                     ant.q,
                     ant.r,
                     ant.move[0].q,
                     ant.move[0].r,
-                    "#ff0000CC"
+                    COLORS.arrow
                 );
             }
             this.artist.drawAnt(ant.q, ant.r, ant);
