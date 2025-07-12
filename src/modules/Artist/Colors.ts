@@ -17,6 +17,6 @@ export enum COLORS {
     enemy = "#ff0000",
     ally = "#56b814",
 
-    arrow = "#ff0000CC"
+    arrow = "#ff0000a6"
 
 }
