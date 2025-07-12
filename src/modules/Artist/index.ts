@@ -41,10 +41,19 @@ export class CanvasArtist {
         posr: number;
         color?: string;
         text?: string;
+        textMul?: number;
         strokeColor?: string;
         radiusMul?: number;
     }) {
-        const { posq, posr, color, text, strokeColor, radiusMul = 1 } = config;
+        const {
+            posq,
+            posr,
+            color,
+            text,
+            textMul = 0.8,
+            strokeColor,
+            radiusMul = 1,
+        } = config;
         const ctx = this.ctx;
         const r = this.hexagoneRadius * radiusMul;
         const p = this.hexagoneP * radiusMul;
@@ -68,7 +77,7 @@ export class CanvasArtist {
         if (text) {
             ctx.moveTo(x, y);
             ctx.fillStyle = color ? Colorist.invertHex(color) : "#000";
-            ctx.font = `${r * 0.8}px Arial`;
+            ctx.font = `${r * textMul}px Arial`;
             ctx.textAlign = "center";
             ctx.fillText(text, x, y + r / 4);
         }
@@ -97,10 +106,19 @@ export class CanvasArtist {
         posr: number;
         color?: string;
         text?: string;
+        textMul?: number;
         strokeColor?: string;
         radiusMul?: number;
     }) {
-        const { posq, posr, color, text, strokeColor, radiusMul = 1 } = config;
+        const {
+            posq,
+            posr,
+            color,
+            text,
+            textMul = 0.8,
+            strokeColor,
+            radiusMul = 1,
+        } = config;
         const ctx = this.ctx;
         const r = this.hexagoneRadius * radiusMul;
         const p = this.hexagoneP * radiusMul;
@@ -118,7 +136,7 @@ export class CanvasArtist {
 
         ctx.beginPath();
         ctx.arc(x, y, p, 0, 2 * Math.PI);
-        ctx.closePath()
+        ctx.closePath();
         if (color) {
             ctx.fillStyle = color;
             ctx.fill();
@@ -127,7 +145,7 @@ export class CanvasArtist {
         if (text) {
             ctx.moveTo(x, y);
             ctx.fillStyle = color ? Colorist.invertHex(color) : "#000";
-            ctx.font = `${r * 0.8}px Arial`;
+            ctx.font = `${r * textMul}px Arial`;
             ctx.textAlign = "center";
             ctx.fillText(text, x, y + r / 4);
         }
@@ -194,7 +212,8 @@ export class CanvasArtist {
             posq: q,
             posr: r,
             color,
-            text: String(gex.cost),
+            text: gex.q + " | " + gex.r,
+            textMul: 0.35
         });
     }
 
